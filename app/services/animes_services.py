@@ -1,6 +1,7 @@
+from app.services.helper import check_incorrect_keys
 from app.services import connect_db
 from app.services.anime_model import Anime
-from app.services.exc import DataAlreadyExistsError, IncorrectDataError
+from app.services.exc import DataAlreadyExistsError, IncorrectDataError, InexistentDataError
 
 TABLE_NAME = 'animes'
 FIELDNAMES = ('id', 'anime', 'released_date', 'seasons')
@@ -24,34 +25,23 @@ def create_table() -> None:
     conn.close()
 
 
-def get_all_animes():
-    ...
-
-
-def add_anime(data):
+def add_anime(data) -> dict:
     REQUIRED_KEYS = ['anime', 'released_date', 'seasons']
-    wrong_keys = []
-    for key in data:
-        if key not in REQUIRED_KEYS:
-            wrong_keys.append(key)
-    if wrong_keys:
-        raise IncorrectDataError(REQUIRED_KEYS, wrong_keys)
-    
+    check_incorrect_keys(REQUIRED_KEYS, data)
     create_table()
     try:
         anime = Anime(**data)
     except TypeError:
         raise IncorrectDataError(REQUIRED_KEYS, [])
+
     anime_data = anime.data()
 
     conn = connect_db()
     cur = conn.cursor()
-
     cur.execute(f"""
         SELECT * FROM {TABLE_NAME}
         WHERE anime = '{anime_data['anime']}';
     """)
-
     has_anime = bool(cur.fetchone())
 
     if has_anime:
@@ -65,7 +55,6 @@ def add_anime(data):
         RETURNING *;
     """,
     anime_data)
-
     new_anime = cur.fetchone()
 
     processed_data = dict(zip(FIELDNAMES, new_anime))
@@ -77,19 +66,40 @@ def add_anime(data):
     return processed_data
 
 
-def get_all_animes():
+def get_all_animes() -> list:
     create_table()
 
     conn = connect_db()
     cur = conn.cursor()
-
     cur.execute(f"""
         SELECT * FROM {TABLE_NAME}
     """)
-
     animes = cur.fetchall()
 
     processed_data = [dict(zip(FIELDNAMES, anime)) for anime in animes]
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return processed_data
+
+
+def get_anime_by_id(anime_id: int) -> dict:
+    create_table()
+
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute(f"""
+        SELECT * FROM {TABLE_NAME}
+        WHERE id = {anime_id}
+    """)
+    anime = cur.fetchone()
+
+    if not anime:
+        raise InexistentDataError
+    
+    processed_data = dict(zip(FIELDNAMES, anime))
 
     conn.commit()
     cur.close()

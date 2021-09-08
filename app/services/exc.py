@@ -13,3 +13,11 @@ class DataAlreadyExistsError(Exception):
             'error': f'{data_name.title()} already exists.'
         }
         super().__init__(self.message, *args)
+
+
+class InexistentDataError(Exception):
+    def __init__(self, *args) -> None:
+        self.message = {
+            'error': 'Not Found'
+        }
+        super().__init__(self.message, *args)
