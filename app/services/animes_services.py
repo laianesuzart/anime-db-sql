@@ -137,3 +137,26 @@ def update_anime(anime_id: int, data: dict) -> dict:
     conn.close()
 
     return processed_data
+
+
+def delete_anime(anime_id: int) -> None:
+    create_table()
+
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute(f"""
+        SELECT * FROM {TABLE_NAME}
+        WHERE id = {anime_id}
+    """)
+    anime = cur.fetchone()
+
+    if not anime:
+        raise InexistentDataError
+    
+    cur.execute(f"""
+        DELETE FROM {TABLE_NAME}
+        WHERE id = {anime_id}
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
