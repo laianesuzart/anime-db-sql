@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from app.services.exc import DataAlreadyExistsError, IncorrectDataError, InexistentDataError
-from app.services.animes_services import add_anime, get_all_animes, get_anime_by_id
+from app.services.animes_services import add_anime, get_all_animes, get_anime_by_id, update_anime
 from ..services import URL_PREFIX
 
 bp_animes = Blueprint('animes', __name__, url_prefix=URL_PREFIX)
@@ -34,7 +34,14 @@ def filter(anime_id: int):
 
 @bp_animes.route('/animes/<int:anime_id>', methods=['PATCH'])
 def update(anime_id: int):
-    ...
+    data = request.get_json()
+    try:
+        updated_anime = update_anime(anime_id, data)
+        return updated_anime, 200
+    except IncorrectDataError as err:
+        return err.message, 422
+    except InexistentDataError as err:
+        return err.message, 404
 
 
 @bp_animes.route('/animes/<int:anime_id>', methods=['DELETE'])

@@ -5,6 +5,7 @@ from app.services.exc import DataAlreadyExistsError, IncorrectDataError, Inexist
 
 TABLE_NAME = 'animes'
 FIELDNAMES = ('id', 'anime', 'released_date', 'seasons')
+REQUIRED_KEYS = ['anime', 'released_date', 'seasons']
 
 
 def create_table() -> None:
@@ -25,8 +26,7 @@ def create_table() -> None:
     conn.close()
 
 
-def add_anime(data) -> dict:
-    REQUIRED_KEYS = ['anime', 'released_date', 'seasons']
+def add_anime(data: dict) -> dict:
     check_incorrect_keys(REQUIRED_KEYS, data)
     create_table()
     try:
@@ -94,6 +94,37 @@ def get_anime_by_id(anime_id: int) -> dict:
         SELECT * FROM {TABLE_NAME}
         WHERE id = {anime_id}
     """)
+    anime = cur.fetchone()
+
+    if not anime:
+        raise InexistentDataError
+    
+    processed_data = dict(zip(FIELDNAMES, anime))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return processed_data
+
+
+def update_anime(anime_id: int, data: dict) -> dict:
+    check_incorrect_keys(REQUIRED_KEYS, data)
+    create_table()
+    atributes = ', '.join([f'{key} = %s' for key in list(data.keys())])
+    if data.get('anime'):
+        data.update({'anime': data['anime'].title()})
+    values = tuple(data.values())
+
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute(f"""
+        UPDATE {TABLE_NAME}
+        SET {atributes}
+        WHERE id = {anime_id}
+        RETURNING *;
+    """, 
+    values)
     anime = cur.fetchone()
 
     if not anime:
