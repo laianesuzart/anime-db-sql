@@ -75,3 +75,24 @@ def add_anime(data):
     conn.close()
 
     return processed_data
+
+
+def get_all_animes():
+    create_table()
+
+    conn = connect_db()
+    cur = conn.cursor()
+
+    cur.execute(f"""
+        SELECT * FROM {TABLE_NAME}
+    """)
+
+    animes = cur.fetchall()
+
+    processed_data = [dict(zip(FIELDNAMES, anime)) for anime in animes]
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return processed_data
