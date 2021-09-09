@@ -1,9 +1,8 @@
 from flask import Blueprint, request
 from app.services.exc import DataAlreadyExistsError, IncorrectDataError, InexistentDataError
 from app.services.animes_services import add_anime, get_all_animes, get_anime_by_id, update_anime, delete_anime
-from ..services import URL_PREFIX
 
-bp_animes = Blueprint('animes', __name__, url_prefix=URL_PREFIX)
+bp_animes = Blueprint('animes', __name__)
 
 
 @bp_animes.route('/animes', methods=['GET', 'POST'])
