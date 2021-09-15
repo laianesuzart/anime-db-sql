@@ -1,4 +1,4 @@
-# 📮 Animes API
+# 📺 Animes API
 ### API de animes CRUD desenvolvida com Flask e PostreSQL
 
 #### Projeto concluído ✔️
