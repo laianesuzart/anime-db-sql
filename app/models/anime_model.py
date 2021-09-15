@@ -163,7 +163,8 @@ class Anime:
 
         cur.execute("""
             DELETE FROM animes
-            WHERE id = (%s);
+            WHERE id = (%s)
+            RETURNING *;
         """, (id,))
         fetch_result = cur.fetchone()
 
