@@ -142,7 +142,7 @@ class Anime:
         conn = connect(**configs)
         cur = conn.cursor()
 
-        cur.execute('SELECT * FROM anime WHERE id = (%s);', (id,))
+        cur.execute('SELECT * FROM animes WHERE id = (%s);', (id,))
         fetch_result = cur.fetchone()
 
         conn.commit()
