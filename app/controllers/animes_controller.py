@@ -1,6 +1,6 @@
 from flask import Blueprint, request
-from app.services.exc import DataAlreadyExistsError, IncorrectDataError, InexistentDataError
-from app.services.animes_services import add_anime, get_all_animes, get_anime_by_id, update_anime, delete_anime
+from app.models.exc import DataAlreadyExistsError, IncorrectDataError, InexistentDataError
+from app.models.anime_model import Anime
 
 bp_animes = Blueprint('animes', __name__)
 
@@ -10,7 +10,8 @@ def get_create():
     if request.method == 'POST':
         data = request.get_json()
         try:
-            new_anime = add_anime(data)
+            anime = Anime(data)
+            new_anime = anime.save().__dict__
             return new_anime, 201
         except IncorrectDataError as err:
             return err.message, 422
@@ -18,14 +19,14 @@ def get_create():
             return err.message, 409
 
     if request.method == 'GET':
-        animes = get_all_animes()
+        animes = Anime.get_all()
         return {'data': animes}, 200
 
 
 @bp_animes.route('/animes/<int:anime_id>')
 def filter(anime_id: int):
     try:
-        anime = get_anime_by_id(anime_id)
+        anime = Anime.get_by_id(anime_id).__dict__
         return {'data': anime}, 200
     except InexistentDataError as err:
         return err.message, 404
@@ -35,7 +36,7 @@ def filter(anime_id: int):
 def update(anime_id: int):
     data = request.get_json()
     try:
-        updated_anime = update_anime(anime_id, data)
+        updated_anime = Anime.update(anime_id, data).__dict__
         return updated_anime, 200
     except IncorrectDataError as err:
         return err.message, 422
@@ -46,7 +47,7 @@ def update(anime_id: int):
 @bp_animes.route('/animes/<int:anime_id>', methods=['DELETE'])
 def delete(anime_id: int):
     try:
-        delete_anime(anime_id)
+        Anime.delete(anime_id)
         return '', 204
     except InexistentDataError as err:
         return err.message, 404
